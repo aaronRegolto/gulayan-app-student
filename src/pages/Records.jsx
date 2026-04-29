@@ -25,12 +25,40 @@ function Records() {
     // TODO search from the the backend; in case that all records is not yet loaded
   }
   const handleLoadRecords = async (page = 1, append = false) => {
-    //TODO: load the data from the database
-    //TODO: implement paginated data loading
+    try {
+      if (!append) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      
+      const response = await api.get('plants', {
+        params: { page, per_page: 10 }
+      });
+      
+      const newRecords = response.data.data || [];
+      
+      if (append) {
+        setRecords(prev => [...prev, ...newRecords]);
+      } else {
+        setRecords(newRecords);
+      }
+      
+      // Check if there are more records to load
+      setHasMore(newRecords.length === 10);
+    } catch (error) {
+      console.error(error);
+      toast.error("Error loading records.");
+      setHasMore(false);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
   }
   const handleAddRecord = async (formData) => {
     try {
-      //TODO: make add new record functional
+      const response = await api.post('plants', formData);
+      setRecords(prev => [response.data.data || response.data, ...prev]);
       toast.success("New record saved.");
     } catch (error) {
       console.error(error);
@@ -41,7 +69,9 @@ function Records() {
   }
   const handleUpdateRecord = async (data) => {
     try {
-      //TODO make update record functional
+      const response = await api.put(`plants/${data.id}`, data);
+      const updatedData = response.data.data || data;
+      setRecords(prev => prev.map(record => record.id === data.id ? updatedData : record));
       toast.success("Plant data updated.");
     } catch (error) {
       console.error(error);
@@ -183,7 +213,7 @@ function Records() {
                           <td className="py-4 px-6 text-sm text-gray-800 font-medium">{record.name}</td>
                           <td className="py-4 px-6 text-sm text-gray-600">{record?.variety || "-"}</td>
                           <td className="py-4 px-6 text-sm text-gray-600">{record?.batch_name || "-"}</td>
-                          <td className="py-4 px-6 text-sm text-gray-800 font-medium">{record?.seedling_source || "-"}</td>
+                          <td className="py-4 px-6 text-sm text-gray-800 font-medium">{record?.seedling_source || record?.supplier || "-"}</td>
                           <td className="py-4 px-6 text-sm text-gray-600">{record?.seedling_count || "-"}</td>
                           <td className="py-4 px-6 text-sm text-gray-600">{record?.starting_fund || "0"}</td>
                           <td className="py-4 px-6 text-sm text-gray-600">{record?.date_planted || "-"}</td>
