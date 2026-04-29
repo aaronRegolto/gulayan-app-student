@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
 import { FaLeaf, FaUsers, FaBoxOpen, FaChartLine } from "react-icons/fa";
-import axios from "axios";
+import { plantsApi } from "../api";
 
 function Dashboard() {
  
   const [plants, setPlants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const stats = [
     {
       title: "Total Plants",
-      value: "156",
+      value: plants.length,
       icon: FaLeaf,
       color: "bg-green-100 text-green-600",
     },
     {
       title: "Estimated Counts",
-      value: "1,234",
+      value: plants.reduce((sum, plant) => sum + (plant.estimated_count || 0), 0).toLocaleString(),
       icon: FaUsers,
       color: "bg-blue-100 text-blue-600",
     }
@@ -22,7 +24,19 @@ function Dashboard() {
 
 
   useEffect(() => {
-    // TODO fetch plants data from server
+    const fetchPlants = async () => {
+      try {
+        setLoading(true);
+        const response = await plantsApi.getAll();
+        setPlants(response.data.data || response.data);
+      } catch (err) {
+        setError(err.message || "Failed to fetch plants");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlants();
   }, []);
 
   return (
@@ -57,49 +71,57 @@ function Dashboard() {
           Recent Plants
         </h2>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Name
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Variety
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Estimated Count
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Date Planted
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {plants.map((plant) => (
-                <tr
-                  key={`plant-${plant.id}`}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    {plant.name}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-800">
-                    {plant.variety}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    {plant.estimated_count}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-800 font-medium">
-                    {new Date(plant.date_planted).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </td>
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Loading plants...</div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">{error}</div>
+          ) : plants.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No plants found</div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                    Name
+                  </th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                    Variety
+                  </th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                    Estimated Count
+                  </th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                    Date Planted
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {plants.map((plant) => (
+                  <tr
+                    key={`plant-${plant.id}`}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {plant.name}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-800">
+                      {plant.variety}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {plant.estimated_count}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-800 font-medium">
+                      {new Date(plant.date_planted).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

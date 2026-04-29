@@ -38,3 +38,12 @@ api.interceptors.response.use(
   }
 )
 
+// Plants API
+export const plantsApi = {
+  getAll: () => api.get("/plants"),
+  getById: (id) => api.get(`/plants/${id}`),
+  create: (data) => api.post("/plants", data),
+  update: (id, data) => api.put(`/plants/${id}`, data),
+  delete: (id) => api.delete(`/plants/${id}`),
+}
+
