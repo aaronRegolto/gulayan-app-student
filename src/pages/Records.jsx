@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FaSearch, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import ModalNewRecord from './records/ModalNewRecord';
 import ModalEditRecord from './records/ModalEditRecord';
@@ -17,18 +17,62 @@ function Records() {
   //pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const observerTarget = useRef(null);
+  const [totalPages, setTotalPages] = useState(1);
   const isInInitialMount = useRef(true);
+  const PAGE_SIZE = 10;
 
-  const handleSearchPlants = async () => {
-    // TODO search from the the backend; in case that all records is not yet loaded
+  const handleLoadRecords = async (page = 1) => {
+    try {
+      setIsLoading(true);
+
+      const response = await api.get('plants', {
+        params: {
+          page,
+          per_page: PAGE_SIZE,
+        },
+      });
+
+      const responseData = response.data;
+      const results = Array.isArray(responseData)
+        ? responseData
+        : responseData?.data ?? responseData?.records ?? [];
+      const loadedRecords = Array.isArray(results) ? results : [];
+
+      setRecords(loadedRecords);
+      setCurrentPage(page);
+
+      let nextHasMore = false;
+      let nextTotalPages = 1;
+
+      if (responseData?.meta) {
+        const meta = responseData.meta;
+        if (typeof meta.last_page === 'number') {
+          nextTotalPages = meta.last_page;
+          nextHasMore = page < meta.last_page;
+        } else if (typeof meta.current_page === 'number' && typeof meta.total_pages === 'number') {
+          nextTotalPages = meta.total_pages;
+          nextHasMore = meta.current_page < meta.total_pages;
+        } else if (typeof meta.total === 'number') {
+          const perPage = meta.per_page ?? PAGE_SIZE;
+          nextTotalPages = Math.ceil(meta.total / perPage);
+          nextHasMore = page < nextTotalPages;
+        } else {
+          nextHasMore = loadedRecords.length === PAGE_SIZE;
+        }
+      } else {
+        nextHasMore = loadedRecords.length === PAGE_SIZE;
+      }
+
+      setTotalPages(nextTotalPages);
+      setHasMore(nextHasMore);
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to load records.');
+    } finally {
+      setIsLoading(false);
+    }
   }
-  const handleLoadRecords = async (page = 1, append = false) => {
-    //TODO: load the data from the database
-    //TODO: implement paginated data loading
-  }
-  const handleAddRecord = async (formData) => {
+  const handleAddRecord = async () => {
     try {
       //TODO: make add new record functional
       toast.success("New record saved.");
@@ -39,7 +83,7 @@ function Records() {
 
     setIsModalOpen(false)
   }
-  const handleUpdateRecord = async (data) => {
+  const handleUpdateRecord = async () => {
     try {
       //TODO make update record functional
       toast.success("Plant data updated.");
@@ -54,8 +98,8 @@ function Records() {
     try {
       const isDelete = confirm("Are you sure you want to delete this record?");
       if (isDelete) {
-        await api.delete(`plants/${data.id}`, data);
-        setRecords(prev => prev?.filter( val => data.id !== val.id))
+        await api.delete(`plants/${data.id}`);
+        setRecords(prev => prev?.filter(val => data.id !== val.id));
         toast.success("Plant data deleted.");
       }
     } catch (error) {
@@ -68,42 +112,10 @@ function Records() {
     record.variety?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     record.seedling_source?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const loadMore = useCallback(() => {
-    if (!isLoadingMore && hasMore && !searchTerm) {
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-      handleLoadRecords(nextPage, true);
-    }
-  }, [isLoadingMore, hasMore, currentPage, searchTerm]);
-
   // initial record loading
   useEffect(() => {
-    handleLoadRecords(1, false);
+    handleLoadRecords(1);
   }, []);
-  // intersection observer for infine scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMore();
-        }
-      }, { threshold: 0.1 }
-    );
-
-    const currentTarget = observerTarget.current;
-
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    } else {
-      console.log("No target to observer.");
-    }
-
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    }
-  }, [loadMore]);
   // reset pagination when searching
   useEffect(() => {
     if (isInInitialMount.current) {
@@ -116,7 +128,7 @@ function Records() {
     } else {
       setCurrentPage(1);
       setHasMore(true);
-      handleLoadRecords(1, false);
+      handleLoadRecords(1);
     }
   }, [searchTerm]);
 
@@ -150,7 +162,6 @@ function Records() {
       </div>
 
       {/* Records Table */}
-      {/* TODO implement pagination plants table */}
       <div className="bg-white rounded-lg shadow-md border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto max-h-[580px] overflow-y-auto">
           <table className="relative w-full">
@@ -205,27 +216,6 @@ function Records() {
                         </tr>
                       ))}
 
-                      {/* loading more indicator */}
-                      {
-                        isLoadingMore && (
-                          <tr>
-                            <td colSpan={8} className='py-6'>
-                              <PlantLoading size='lg' variant='pulse' text="Loading more records..." />
-                            </td>
-                          </tr>
-                        )
-                      }
-                      {/* intersection observer target */}
-                      {
-                        !searchTerm && hasMore && !isLoadingMore && (
-                          <tr ref={observerTarget}>
-                            <td colSpan={8} className='py-4 text-center text-gray-400 text-sm'>
-                              Scroll for more...
-                            </td>
-                          </tr>
-                        )
-                      }
-
                     </>
                   )
               }
@@ -239,12 +229,30 @@ function Records() {
           </div>
         )}
 
-        {/* End of Records Indicator */}
-        {!hasMore && records.length > 0 && !searchTerm && (
-          <div className="text-center py-4 text-gray-400 text-sm border-t border-gray-100">
-            No more records to load
+        <div className="flex flex-col gap-2 px-6 py-4 border-t border-gray-100 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-sm text-gray-500">
+            Page {currentPage}{totalPages ? ` of ${totalPages}` : ''}
+          </span>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleLoadRecords(currentPage - 1)}
+              disabled={currentPage === 1 || isLoading}
+              className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition duration-150 hover:bg-gray-200 disabled:cursor-not-allowed disabled:bg-gray-200"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLoadRecords(currentPage + 1)}
+              disabled={!hasMore || isLoading}
+              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition duration-150 hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+            >
+              Next
+            </button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Modal */}
