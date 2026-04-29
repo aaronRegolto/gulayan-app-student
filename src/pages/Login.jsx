@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { api } from '../api'
 
 function Login() {
@@ -9,6 +10,7 @@ function Login() {
     password: '',
     rememberMe: false
   })
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -20,8 +22,37 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    //TODO make the login process functional
+    setIsLoggingIn(true)
+    try {
+      const response = await api.post('/login', {
+        email: formData.email,
+        password: formData.password
+      })
 
+      const token = response?.data?.token
+      if (!token) {
+        throw new Error(response?.data?.message || 'Invalid login response')
+      }
+
+      localStorage.setItem('token', token)
+      toast.success('Signed in successfully')
+      navigate('/dashboard')
+    } catch (error) {
+      let message = error?.response?.data?.message || error?.message || 'Login failed'
+    
+      if (message.toLowerCase().includes('invalid') || message.toLowerCase().includes('credentials')) {
+        message = 'Hmm, that email or password doesn\'t look right. Please try again.'
+      } else if (message.toLowerCase().includes('not found') || message.toLowerCase().includes('does not exist')) {
+        message = 'We couldn\'t find an account with that email. Would you like to sign up?'
+      } else if (message.toLowerCase().includes('network') || message.toLowerCase().includes('timeout')) {
+        message = 'Connection issue. Please check your internet and try again.'
+      }
+      
+      toast.error(message)
+      console.error('Login failed:', error)
+    } finally {
+      setIsLoggingIn(false)
+    }
   }
 
   return (
@@ -38,7 +69,7 @@ function Login() {
             </svg>
           </div>
           <h1 className="text-4xl font-bold text-green-800 mb-2">Gulayan</h1>
-          <p className="text-green-600">Magtanim ay di biro.</p>
+          <p className="text-green-600 font-medium">Welcome back to your garden! 🌿</p>
         </div>
 
         {/* Login Form Card */}
@@ -48,7 +79,7 @@ function Login() {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Garden email
               </label>
               <input
                 type="email"
@@ -57,17 +88,18 @@ function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                disabled={isLoggingIn}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 
                                 focus:ring-green-500 focus:border-transparent transition duration-200 
-                                outline-none"
-                placeholder="you@example.com"
+                                outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
+                placeholder="your@email.com"
               />
             </div>
 
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Garden password
               </label>
               <input
                 type="password"
@@ -76,22 +108,44 @@ function Login() {
                 value={formData.password}
                 onChange={handleChange}
                 required
+                disabled={isLoggingIn}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2
                                  focus:ring-green-500 focus:border-transparent transition duration-200 
-                                 outline-none"
+                                 outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
                 placeholder="••••••••"
               />
             </div>
 
+            {/* Remember Me */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                name="rememberMe"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+                disabled={isLoggingIn}
+                className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:cursor-not-allowed"
+              />
+              <label htmlFor="rememberMe" className="text-sm text-gray-700">
+                Remember me on this device
+              </label>
+            </div>
+
             {/* Submit Button */}
-            {/* TODO disable and show loading icon while logging in. */}
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold 
-                            hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 
-                            focus:ring-offset-2 transition duration-200 shadow-md"
+              disabled={isLoggingIn}
+              className={`w-full py-3 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 shadow-md ${
+                isLoggingIn
+                  ? 'bg-gray-400 cursor-not-allowed text-gray-700'
+                  : 'bg-green-600 text-white hover:bg-green-700'
+              }`}
             >
-              Sign In
+              {isLoggingIn && (
+                <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+              )}
+              {isLoggingIn ? 'Opening your garden...' : 'Open my garden'}
             </button>
           </form>
 
@@ -101,28 +155,35 @@ function Login() {
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">or continue with</span>
+              <span className="px-4 bg-white text-gray-500">or</span>
             </div>
           </div>
 
           {/* Sign Up Link */}
-          {/* TODO disable sign up link while logging in */}
           <p className="mt-6 text-center text-sm text-gray-600">
-            Don't have an account?{' '}
+            First time planting?{' '}
             <button
+              type="button"
               onClick={() => navigate('/signup')}
-              className="cursor-pointer text-green-600 hover:text-green-700 font-semibold">
-              Sign up for free
+              disabled={isLoggingIn}
+              className={`font-semibold transition ${
+                isLoggingIn
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-green-600 hover:text-green-700 cursor-pointer'
+              }`}
+            >
+              Start your garden
             </button>
           </p>
         </div>
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-500 mt-6">
-          By signing in, you agree to our{' '}
-          <a href="#" className="text-green-600 hover:underline">Terms of Service</a>
+          By continuing, you accept our{' '}
+          <a href="#" className="text-green-600 hover:underline">Terms</a>
           {' '}and{' '}
-          <a href="#" className="text-green-600 hover:underline">Privacy Policy</a>
+          <a href="#" className="text-green-600 hover:underline">Privacy
+          </a>
         </p>
       </div>
     </div>
