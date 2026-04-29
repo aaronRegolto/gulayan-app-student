@@ -9,8 +9,9 @@ import Records from './pages/Records'
 import Settings from './pages/Settings'
 import { Toaster } from 'sonner';
 
-function App() {
-
+function LoginApp() {
+ cons [formdata,setF
+ ]
   return (
     <BrowserRouter>
       <Toaster richColors position='top-right' />
