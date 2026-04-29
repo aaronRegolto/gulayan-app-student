@@ -49,7 +49,7 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
       variety: '',
       notes: '',
       date_planted: '',
-      quantity: '',
+      seedling_count: '',
       batch_name: '',
       starting_fund: '',
       supplier: ''
@@ -86,13 +86,14 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Plant Name */}
-            <div className="col-span-2 md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="col-span-1 md:col-span-1">
+              <label htmlFor="edit_name" className="block text-sm font-medium text-gray-700 mb-2">
                 Name <span className="text-red-500">*</span>
               </label>
               <input
+                id="edit_name"
                 type="text"
                 name="name"
                 value={formData?.name || ''}
@@ -104,12 +105,12 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
             </div>
 
             {/* Variety */}
-            <div className="col-span-2 md:col-span-1">
-              <label htmlFor="variety" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="col-span-1 md:col-span-1">
+              <label htmlFor="edit_variety" className="block text-sm font-medium text-gray-700 mb-2">
                 Variety <span className="text-red-500">*</span>
               </label>
               <select
-                id="variety"
+                id="edit_variety"
                 name="variety"
                 value={formData?.variety || ''}
                 onChange={handleChange}
@@ -126,11 +127,12 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
             </div>
 
             {/* Batch Name */}
-            <div className="col-span-2 md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="col-span-1 md:col-span-1">
+              <label htmlFor="edit_batch_name" className="block text-sm font-medium text-gray-700 mb-2">
                 Batch Name
               </label>
               <input
+                id="edit_batch_name"
                 type="text"
                 name="batch_name"
                 value={formData?.batch_name || ''}
@@ -141,11 +143,12 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
             </div>
 
             {/* Seedling Count */}
-            <div className="col-span-2 md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="col-span-1 md:col-span-1">
+              <label htmlFor="edit_seedling_count" className="block text-sm font-medium text-gray-700 mb-2">
                 Seedling Count
               </label>
               <input
+                id="edit_seedling_count"
                 type="number"
                 name="seedling_count"
                 value={formData?.seedling_count || ''}
@@ -156,11 +159,12 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
             </div>
 
             {/* Supplier/Seedling Source */}
-            <div className="col-span-2 md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="col-span-1 md:col-span-1">
+              <label htmlFor="edit_supplier" className="block text-sm font-medium text-gray-700 mb-2">
                 Seedling Source
               </label>
               <input
+                id="edit_supplier"
                 type="text"
                 name="supplier"
                 value={formData?.supplier || ''}
@@ -171,12 +175,12 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
             </div>
 
             {/* Starting Fund */}
-            <div className="col-span-2 md:col-span-1">
-              <label htmlFor="starting_fund" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="col-span-1 md:col-span-1">
+              <label htmlFor="edit_starting_fund" className="block text-sm font-medium text-gray-700 mb-2">
                 Starting Fund
               </label>
               <InputPriceField
-                id="starting_fund"
+                id="edit_starting_fund"
                 name="starting_fund"
                 placeholder="0.00"
                 formData={formData || {}}
@@ -186,12 +190,12 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
             </div>
 
             {/* Date Planted */}
-            <div className="col-span-2 md:col-span-1">
-              <label htmlFor="date_planted" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="col-span-1 md:col-span-1">
+              <label htmlFor="edit_date_planted" className="block text-sm font-medium text-gray-700 mb-2">
                 Date Planted
               </label>
               <input
-                id="date_planted"
+                id="edit_date_planted"
                 type="date"
                 name="date_planted"
                 value={formData?.date_planted || ''}
@@ -202,11 +206,11 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
 
             {/* Notes */}
             <div className="col-span-2">
-              <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="edit_notes" className="block text-sm font-medium text-gray-700 mb-2">
                 Notes
               </label>
               <textarea
-                id="notes"
+                id="edit_notes"
                 name="notes"
                 value={formData?.notes || ''}
                 onChange={handleChange}
