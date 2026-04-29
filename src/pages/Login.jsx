@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import { toast } from 'sonner'
 
 function Login() {
   const navigate = useNavigate()
@@ -9,6 +10,8 @@ function Login() {
     password: '',
     rememberMe: false
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -16,12 +19,32 @@ function Login() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }))
+    setError('')
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    //TODO make the login process functional
+    setIsLoading(true)
+    setError('')
 
+    try {
+      const response = await api.post('/auth/login', {
+        email: formData.email,
+        password: formData.password
+      })
+
+      const { token } = response.data
+      localStorage.setItem('token', token)
+      
+      toast.success('Login successful!')
+      navigate('/dashboard')
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Login failed'
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -43,6 +66,12 @@ function Login() {
 
         {/* Login Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-green-100">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Field */}
@@ -56,10 +85,11 @@ function Login() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                disabled={isLoading}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 
                                 focus:ring-green-500 focus:border-transparent transition duration-200 
-                                outline-none"
+                                outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="you@example.com"
               />
             </div>
@@ -75,23 +105,31 @@ function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                disabled={isLoading}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2
                                  focus:ring-green-500 focus:border-transparent transition duration-200 
-                                 outline-none"
+                                 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="••••••••"
               />
             </div>
 
             {/* Submit Button */}
-            {/* TODO disable and show loading icon while logging in. */}
             <button
               type="submit"
+              disabled={isLoading}
               className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold 
                             hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 
-                            focus:ring-offset-2 transition duration-200 shadow-md"
+                            focus:ring-offset-2 transition duration-200 shadow-md disabled:bg-green-400 
+                            disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Sign In
+              {isLoading && (
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
@@ -106,12 +144,12 @@ function Login() {
           </div>
 
           {/* Sign Up Link */}
-          {/* TODO disable sign up link while logging in */}
           <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{' '}
             <button
               onClick={() => navigate('/signup')}
-              className="cursor-pointer text-green-600 hover:text-green-700 font-semibold">
+              disabled={isLoading}
+              className="cursor-pointer text-green-600 hover:text-green-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
               Sign up for free
             </button>
           </p>
