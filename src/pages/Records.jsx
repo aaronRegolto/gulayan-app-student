@@ -76,24 +76,26 @@ function Records() {
       setIsLoadingMore(false);
     }
   }
-  const handleAddRecord = async () => {
+  const handleAddRecord = async (formData) => {
     try {
-      //TODO: make add new record functional
+      const response = await api.post('plants', formData);
+      setRecords([response.data, ...records]);
       toast.success("New record saved.");
     } catch (error) {
       console.error(error);
-      toast.error("Error encountered while saving record.");
+      toast.error(error?.message || "Error encountered while saving record.");
     }
 
     setIsModalOpen(false)
   }
-  const handleUpdateRecord = async () => {
+  const handleUpdateRecord = async (formData) => {
     try {
-      //TODO make update record functional
+      const response = await api.put(`plants/${dataToUpdate.id}`, formData);
+      setRecords(records.map(record => record.id === dataToUpdate.id ? response.data : record));
       toast.success("Plant data updated.");
     } catch (error) {
       console.error(error);
-      toast.error("Error encountered during update.");
+      toast.error(error?.message || "Error encountered during update.");
     } finally {
       setIsEditRecord(false);
     }
