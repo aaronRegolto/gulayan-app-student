@@ -1,28 +1,69 @@
 import { useEffect, useState } from "react";
 import { FaLeaf, FaUsers, FaBoxOpen, FaChartLine } from "react-icons/fa";
-import axios from "axios";
+import { api } from "../api";
+import { toast } from "sonner";
 
 function Dashboard() {
  
   const [plants, setPlants] = useState([]);
-  const stats = [
+  const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState([
     {
       title: "Total Plants",
-      value: "156",
+      value: "0",
       icon: FaLeaf,
       color: "bg-green-100 text-green-600",
     },
     {
       title: "Estimated Counts",
-      value: "1,234",
+      value: "0",
       icon: FaUsers,
       color: "bg-blue-100 text-blue-600",
     }
-  ];
+  ]);
 
+  const fetchPlantsData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('plants', {
+        params: { per_page: 10, page: 1 }
+      });
+
+      const payload = response.data ?? [];
+      const items = Array.isArray(payload) ? payload : payload.data ?? [];
+      
+      setPlants(items);
+
+      // Calculate stats from the data
+      const totalPlants = items.length;
+      const estimatedCounts = items.reduce((sum, plant) => {
+        return sum + (parseInt(plant.estimated_count) || 0);
+      }, 0);
+
+      setStats([
+        {
+          title: "Total Plants",
+          value: totalPlants.toString(),
+          icon: FaLeaf,
+          color: "bg-green-100 text-green-600",
+        },
+        {
+          title: "Estimated Counts",
+          value: estimatedCounts.toLocaleString(),
+          icon: FaUsers,
+          color: "bg-blue-100 text-blue-600",
+        }
+      ]);
+    } catch (error) {
+      console.error(error);
+      toast.error("Unable to load dashboard data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // TODO fetch plants data from server
+    fetchPlantsData();
   }, []);
 
   return (

@@ -22,9 +22,21 @@ function Records() {
   const isInInitialMount = useRef(true);
   const PAGE_SIZE = 10;
 
-  const handleSearchPlants = async () => {
-    // TODO search from the the backend; in case that all records is not yet loaded
-  }
+  const handleSearchPlants = useCallback(async () => {
+    if (!searchTerm.trim()) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await api.get(`plants/search?q=${encodeURIComponent(searchTerm)}`);
+      setRecords(response.data);
+      setHasMore(false); // Disable pagination during search
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error('Error searching records');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [searchTerm]);
   const handleLoadRecords = async (page = 1, append = false) => {
     if (isLoading || isLoadingMore) {
       return;
@@ -38,7 +50,7 @@ function Records() {
 
     try {
       const response = await api.get('plants', {
-        params: { page }
+        params: { page, per_page: PAGE_SIZE }
       });
 
       const payload = response.data ?? [];
@@ -46,11 +58,16 @@ function Records() {
       const meta = payload.meta ?? response.data?.meta;
 
       setRecords((prevRecords) => (append ? [...prevRecords, ...items] : items));
-      setHasMore(
-        meta
-          ? meta.current_page < meta.last_page
-          : items.length > 0
-      );
+      
+      // Update pagination state
+      if (meta) {
+        setCurrentPage(meta.current_page);
+        setTotalPages(meta.last_page);
+        setHasMore(meta.current_page < meta.last_page);
+      } else {
+        setCurrentPage(page);
+        setHasMore(items.length >= PAGE_SIZE);
+      }
     } catch (error) {
       console.error(error);
       toast.error("Unable to load records. Please try again.");
@@ -112,14 +129,13 @@ function Records() {
       return;
     }
     if (searchTerm) {
-      setCurrentPage(1);
-      setHasMore(false);
+      handleSearchPlants();
     } else {
       setCurrentPage(1);
       setHasMore(true);
       handleLoadRecords(1);
     }
-  }, [searchTerm]);
+  }, [searchTerm, handleSearchPlants]);
 
   return (
     <div>
@@ -226,7 +242,12 @@ function Records() {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => handleLoadRecords(currentPage - 1)}
+              onClick={() => {
+                const prevPage = currentPage - 1;
+                if (prevPage >= 1) {
+                  handleLoadRecords(prevPage);
+                }
+              }}
               disabled={currentPage === 1 || isLoading}
               className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition duration-150 hover:bg-gray-200 disabled:cursor-not-allowed disabled:bg-gray-200"
             >
@@ -234,7 +255,12 @@ function Records() {
             </button>
             <button
               type="button"
-              onClick={() => handleLoadRecords(currentPage + 1)}
+              onClick={() => {
+                const nextPage = currentPage + 1;
+                if (hasMore) {
+                  handleLoadRecords(nextPage);
+                }
+              }}
               disabled={!hasMore || isLoading}
               className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition duration-150 hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >

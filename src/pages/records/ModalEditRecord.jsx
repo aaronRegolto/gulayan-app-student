@@ -64,170 +64,156 @@ function ModalEditRecord({ isOpen, onClose, onSubmit, data }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 py-6">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-auto max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Edit Plant Record</h2>
-            <p className="text-sm text-gray-500 mt-1">Update the plant record information.</p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Edit Record</h2>
+            <button
+              onClick={handleClose}
+              className="text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <FaTimes size={24} />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleClose}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-          >
-            <FaTimes />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-gray-700">Name <span className="text-red-500">*</span></span>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Plant Name
+                </label>
                 <input
                   type="text"
                   id="name"
                   name="name"
-                  value={formData?.name || ''}
+                  value={formData.name}
                   onChange={handleChange}
-                  placeholder="Plant name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                 />
-              </label>
-            </div>
+              </div>
 
-            <div>
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-gray-700">Variety <span className="text-red-500">*</span></span>
+              <div>
+                <label htmlFor="variety" className="block text-sm font-medium text-gray-700 mb-2">
+                  Variety
+                </label>
                 <select
                   id="variety"
                   name="variety"
-                  value={formData?.variety || ''}
+                  value={formData.variety}
                   onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                 >
-                  <option value="" disabled>Select variety</option>
-                  {plantVarieties.map((variety) => (
+                  <option value="">Select Variety</option>
+                  {plantVarieties.map(variety => (
                     <option key={variety} value={variety}>{variety}</option>
                   ))}
                 </select>
-              </label>
-            </div>
+              </div>
 
-            <div>
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-gray-700">Batch Name <span className="text-red-500">*</span></span>
-                <input
-                  type="text"
-                  id="batch_name"
-                  name="batch_name"
-                  value={formData?.batch_name || ''}
-                  onChange={handleChange}
-                  placeholder="Batch-001"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                />
-              </label>
-            </div>
-
-            <div>
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-gray-700">Seedling Count <span className="text-red-500">*</span></span>
-                <input
-                  type="text"
-                  id="seedling_count"
-                  name="seedling_count"
-                  inputMode="numeric"
-                  value={formData?.seedling_count || ''}
-                  onChange={handleChange}
-                  placeholder="100"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                />
-              </label>
-            </div>
-
-            <div>
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-gray-700">Seedling Source <span className="text-red-500">*</span></span>
-                <input
-                  type="text"
-                  id="supplier"
-                  name="supplier"
-                  value={formData?.supplier || ''}
-                  onChange={handleChange}
-                  placeholder="Local farm"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                />
-              </label>
-            </div>
-
-            <div>
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-gray-700">Starting Fund <span className="text-red-500">*</span></span>
-                <InputPriceField
-                  id="starting_fund"
-                  name="starting_fund"
-                  placeholder="₱0"
-                  formData={formData}
-                  setFormData={setFormData}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                />
-              </label>
-            </div>
-
-            <div>
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-gray-700">Date Planted <span className="text-red-500">*</span></span>
+              <div>
+                <label htmlFor="date_planted" className="block text-sm font-medium text-gray-700 mb-2">
+                  Date Planted
+                </label>
                 <input
                   type="date"
                   id="date_planted"
                   name="date_planted"
-                  value={formData?.date_planted || ''}
+                  value={formData.date_planted}
                   onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
-              </label>
+              </div>
+
+              <div>
+                <label htmlFor="seedling_count" className="block text-sm font-medium text-gray-700 mb-2">
+                  Seedling Count
+                </label>
+                <input
+                  type="number"
+                  id="seedling_count"
+                  name="seedling_count"
+                  value={formData.seedling_count}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="batch_name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Batch Name
+                </label>
+                <input
+                  type="text"
+                  id="batch_name"
+                  name="batch_name"
+                  value={formData.batch_name}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="starting_fund" className="block text-sm font-medium text-gray-700 mb-2">
+                  Starting Fund
+                </label>
+                <InputPriceField
+                  value={formData.starting_fund}
+                  onChange={(value) => setFormData(prev => ({ ...prev, starting_fund: value }))}
+                  placeholder="Enter starting fund"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="seedling_source" className="block text-sm font-medium text-gray-700 mb-2">
+                  Seedling Source
+                </label>
+                <input
+                  type="text"
+                  id="seedling_source"
+                  name="seedling_source"
+                  value={formData.seedling_source}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-gray-700">Notes</span>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={formData?.notes || ''}
-                  onChange={handleChange}
-                  placeholder="Add optional notes about this plant"
-                  rows="4"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
-                />
+            <div className="col-span-full">
+              <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+                Notes
               </label>
+              <textarea
+                id="notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleChange}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Additional notes..."
+              />
             </div>
-          </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="w-full sm:w-auto px-5 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="w-full sm:w-auto px-5 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition"
-            >
-              Update Plant
-            </button>
-          </div>
-        </form>
+            <div className="flex justify-end space-x-4 pt-6">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                Update Record
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )
