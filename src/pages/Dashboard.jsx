@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaLeaf, FaUsers, FaBoxOpen, FaChartLine } from "react-icons/fa";
 import { api } from "../api";
 import { toast } from "sonner";
+import PlantLoading from "../components/PlantLoading";
 
 function Dashboard() {
  
@@ -65,6 +66,14 @@ function Dashboard() {
   useEffect(() => {
     fetchPlantsData();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <PlantLoading size="large" text="Loading your plants..." variant="spinner" />
+      </div>
+    );
+  }
 
   return (
     <div>
