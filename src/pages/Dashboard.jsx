@@ -131,20 +131,20 @@ function Dashboard() {
                   className="border-b border-gray-100 hover:bg-gray-50"
                 >
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    {plant.name}
+                    {plant.name || "-"}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-800">
-                    {plant.variety}
+                    {plant.variety || "-"}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    {plant.estimated_count}
+                    {plant.estimated_count || "-"}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-800 font-medium">
-                    {new Date(plant.date_planted).toLocaleDateString("en-US", {
+                    {plant.date_planted ? new Date(plant.date_planted).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
-                    })}
+                    }) : "-"}
                   </td>
                 </tr>
               ))}

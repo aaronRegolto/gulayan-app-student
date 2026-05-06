@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
+import { toast } from 'sonner'
 import InputPriceField from '../../components/InputPriceField'
 
 const initialFormState = {
@@ -10,11 +11,12 @@ const initialFormState = {
   seedling_count: '',
   batch_name: '',
   starting_fund: '',
-  supplier: ''
+  seedling_source: ''
 }
 
 function ModalNewRecord({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState(initialFormState)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const plantVarieties = [
     "Vegetables",
     "Leafy Greens",
@@ -40,25 +42,31 @@ function ModalNewRecord({ isOpen, onClose, onSubmit }) {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const requiredFields = [
       'name',
       'variety',
       'batch_name',
       'seedling_count',
-      'supplier',
+      'seedling_source',
       'starting_fund',
       'date_planted'
     ]
 
     const isValid = requiredFields.every((field) => formData[field]?.toString().trim())
     if (!isValid) {
+      toast.error('Please fill in all required fields')
       return
     }
 
-    onSubmit(formData)
-    setFormData(initialFormState)
+    setIsSubmitting(true)
+    try {
+      await onSubmit(formData)
+      setFormData(initialFormState)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleClose = () => {
@@ -161,9 +169,9 @@ function ModalNewRecord({ isOpen, onClose, onSubmit }) {
                 <span className="text-sm font-medium text-gray-700">Seedling Source <span className="text-red-500">*</span></span>
                 <input
                   type="text"
-                  id="supplier"
-                  name="supplier"
-                  value={formData.supplier}
+                  id="seedling_source"
+                  name="seedling_source"
+                  value={formData.seedling_source}
                   onChange={handleChange}
                   placeholder="Local farm"
                   required
@@ -227,9 +235,10 @@ function ModalNewRecord({ isOpen, onClose, onSubmit }) {
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto px-5 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto px-5 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Add Plant
+              {isSubmitting ? 'Adding...' : 'Add Plant'}
             </button>
           </div>
         </form>

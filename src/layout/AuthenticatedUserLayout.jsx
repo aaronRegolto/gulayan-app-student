@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
+import { Outlet, Link, useLocation, Navigate, useNavigate } from "react-router-dom";
 import { FaHome, FaClipboardList, FaCog, FaTimes, FaSignOutAlt, FaBars } from "react-icons/fa";
 export default function AuthenticatedUserLayout() {
   const location = useLocation();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  }
 
   // ensure that user is authenticated, if not redirect to login page
   const isAuthenticated = localStorage.getItem('token') != null;
@@ -14,7 +19,7 @@ export default function AuthenticatedUserLayout() {
   }
 
   const menuItems = [
-    { id: 'dashboard', path: '/', name: 'Dashboard', icon: FaHome },
+    { id: 'dashboard', path: '/dashboard', name: 'Dashboard', icon: FaHome },
     { id: 'my-plants', path: '/my-plants', name: 'My Plants', icon: FaClipboardList },
     { id: 'settings', path: '/settings', name: 'Settings', icon: FaCog }
   ]
@@ -66,13 +71,13 @@ export default function AuthenticatedUserLayout() {
 
         {/* Logout Button */}
         <div className="px-4 py-4 border-t border-gray-200">
-          <Link
-            to="/login"
-            className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition duration-200"
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition duration-200 cursor-pointer"
           >
             <FaSignOutAlt size={20} />
             <span className="font-medium">Logout</span>
-          </Link>
+          </button>
         </div>
       </aside>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { FaSearch, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import ModalNewRecord from './records/ModalNewRecord';
 import ModalEditRecord from './records/ModalEditRecord';
@@ -80,13 +80,13 @@ function Records() {
     try {
       const response = await api.post('plants', formData);
       setRecords([response.data, ...records]);
+      setIsModalOpen(false);
       toast.success("New record saved.");
     } catch (error) {
       console.error(error);
       toast.error(error?.message || "Error encountered while saving record.");
+      throw error;
     }
-
-    setIsModalOpen(false)
   }
   const handleUpdateRecord = async (formData) => {
     try {
