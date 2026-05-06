@@ -21,55 +21,41 @@ function Records() {
   const isInInitialMount = useRef(true);
   const PAGE_SIZE = 10;
 
-  const handleLoadRecords = async (page = 1) => {
-    try {
-      setIsLoading(true);
+  const handleSearchPlants = async () => {
+    // TODO search from the the backend; in case that all records is not yet loaded
+  }
+  const handleLoadRecords = async (page = 1, append = false) => {
+    if (isLoading || isLoadingMore) {
+      return;
+    }
 
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+    }
+
+    try {
       const response = await api.get('plants', {
-        params: {
-          page,
-          per_page: PAGE_SIZE,
-        },
+        params: { page }
       });
 
-      const responseData = response.data;
-      const results = Array.isArray(responseData)
-        ? responseData
-        : responseData?.data ?? responseData?.records ?? [];
-      const loadedRecords = Array.isArray(results) ? results : [];
+      const payload = response.data ?? [];
+      const items = Array.isArray(payload) ? payload : payload.data ?? [];
+      const meta = payload.meta ?? response.data?.meta;
 
-      setRecords(loadedRecords);
-      setCurrentPage(page);
-
-      let nextHasMore = false;
-      let nextTotalPages = 1;
-
-      if (responseData?.meta) {
-        const meta = responseData.meta;
-        if (typeof meta.last_page === 'number') {
-          nextTotalPages = meta.last_page;
-          nextHasMore = page < meta.last_page;
-        } else if (typeof meta.current_page === 'number' && typeof meta.total_pages === 'number') {
-          nextTotalPages = meta.total_pages;
-          nextHasMore = meta.current_page < meta.total_pages;
-        } else if (typeof meta.total === 'number') {
-          const perPage = meta.per_page ?? PAGE_SIZE;
-          nextTotalPages = Math.ceil(meta.total / perPage);
-          nextHasMore = page < nextTotalPages;
-        } else {
-          nextHasMore = loadedRecords.length === PAGE_SIZE;
-        }
-      } else {
-        nextHasMore = loadedRecords.length === PAGE_SIZE;
-      }
-
-      setTotalPages(nextTotalPages);
-      setHasMore(nextHasMore);
+      setRecords((prevRecords) => (append ? [...prevRecords, ...items] : items));
+      setHasMore(
+        meta
+          ? meta.current_page < meta.last_page
+          : items.length > 0
+      );
     } catch (error) {
       console.error(error);
-      toast.error('Unable to load records.');
+      toast.error("Unable to load records. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   }
   const handleAddRecord = async () => {
